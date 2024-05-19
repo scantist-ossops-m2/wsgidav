@@ -535,6 +535,53 @@ class ServerTest(unittest.TestCase):
         #        print client2.response.body
         client2.check_multi_status_response(423)
 
+    def testLocking_issue320(self):
+        """Locking and unlocking a collection with depth-infinity lock.
+
+        See https://github.com/mar10/wsgidav/issues/320
+
+        Fixture:
+            /test/a/
+                    b/
+                    d
+                    c
+                x/
+                    y
+
+        These two resources are locked with depth-infinity:
+            /test/a/b/ (collection)
+            /test/a/c  (non-collection)
+        """
+        client1 = self.client
+
+        client2 = davclient.DAVClient(SERVER_ADDRESS, logger="DAVClient2")
+        client2.set_basic_auth("tester2", "secret2")
+
+        self._prepareTree0()
+
+        # --- Check with depth-infinity lock ----------------------------------
+        # LOCK-infinity parent collection and try to access members
+        locks = client1.set_lock(
+            "/test/a/c",  # non-collection
+            owner="test-bench",
+            lock_type="write",
+            lock_scope="exclusive",
+            depth="infinity",
+        )
+        client1.check_response(200)
+        assert len(locks) == 1, "LOCK failed"
+
+        # LOCK-infinity parent collection and try to access members
+        locks = client1.set_lock(
+            "/test/a/b",  # collection on same level as non-collection /test/a/c
+            owner="test-bench",
+            lock_type="write",
+            lock_scope="exclusive",
+            depth="infinity",
+        )
+        client1.check_response(200)
+        assert len(locks) == 1, "LOCK failed"
+
 
 # ========================================================================
 # suite
