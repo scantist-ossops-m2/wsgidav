@@ -541,12 +541,12 @@ class ServerTest(unittest.TestCase):
         See https://github.com/mar10/wsgidav/issues/320
 
         Fixture:
-            /test/a/
-                    b/
-                    d
-                    c
-                x/
-                    y
+        /test/a/
+                b/
+                  d
+                c
+              x/
+                y
 
         These two resources are locked with depth-infinity:
             /test/a/b/ (collection)
